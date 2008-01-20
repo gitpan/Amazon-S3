@@ -332,6 +332,12 @@ documentation in C<add_acl> for the values and usage.
 Returns a boolean indicating its success. Check C<err> and
 C<errstr> for error message if this operation fails.
 
+=head2 add_key_filename
+
+The method works like C<add_key> except the value is assumed
+to be a filename on the local file system. The file will 
+be streamed rather then loaded into memory in one big chunk.
+
 =head2 head_key $key_name
 
 Returns a configuration HASH of the given key. If a key does
@@ -358,6 +364,11 @@ On success, the method returns a HASHREF containing:
 =item @meta
 
 =back
+
+=head2 get_key_filename $key_name, $method, $filename
+
+This method works like C<get_key>, but takes an added
+filename that the S3 resource will be written to.
 
 =head2 delete_key $key_name
 
@@ -457,6 +468,13 @@ provided the bucket ACL will be set.
 =back
 
 Returns a boolean indicating the operations success.
+
+=head2 get_location_constraint
+
+Returns the location constraint data on a bucket.
+
+For more information on location constraints, refer to the
+Amazon S3 Developer Guide.
 
 =head2 err
 

@@ -15,7 +15,7 @@ use base qw(Class::Accessor::Fast);
 __PACKAGE__->mk_accessors(
     qw(libxml aws_access_key_id aws_secret_access_key secure ua err errstr timeout)
 );
-our $VERSION = '0.411';
+our $VERSION = '0.41.2';
 
 my $AMAZON_HEADER_PREFIX = 'x-amz-';
 my $METADATA_PREFIX      = 'x-amz-meta-';
