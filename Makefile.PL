@@ -12,7 +12,8 @@ WriteMakefile(
         'Digest::MD5::File'          => '0', # for testing
         'Digest::HMAC_SHA1'          => '0',
         'HTTP::Date'                 => '0',
-        'LWP::UserAgent'             => '0',
+        'IO::File'                   => '0',
+        'LWP::UserAgent::Determined' => '0',
         'MIME::Base64'               => '0',
         'Test::More'                 => '0.01', # for testing
         'XML::Simple'                => '1.08',

@@ -7,15 +7,15 @@ use Digest::HMAC_SHA1;
 use HTTP::Date;
 use MIME::Base64 qw(encode_base64);
 use Amazon::S3::Bucket;
-use LWP::UserAgent;
+use LWP::UserAgent::Determined;
 use URI::Escape qw(uri_escape_utf8);
 use XML::Simple;
 
 use base qw(Class::Accessor::Fast);
 __PACKAGE__->mk_accessors(
-    qw(libxml aws_access_key_id aws_secret_access_key secure ua err errstr timeout)
+    qw(aws_access_key_id aws_secret_access_key secure ua err errstr timeout retry)
 );
-our $VERSION = '0.41.2';
+our $VERSION = '0.44';
 
 my $AMAZON_HEADER_PREFIX = 'x-amz-';
 my $METADATA_PREFIX      = 'x-amz-meta-';
@@ -31,9 +31,22 @@ sub new {
     $self->secure(0)   if not defined $self->secure;
     $self->timeout(30) if not defined $self->timeout;
 
-    my $ua =
-      LWP::UserAgent->new(keep_alive            => $KEEP_ALIVE_CACHESIZE,
-                          requests_redirectable => [qw(GET HEAD DELETE PUT)],);
+    my $ua;
+    if ($self->retry) {
+        $ua =
+          LWP::UserAgent::Determined->new(
+                             keep_alive            => $KEEP_ALIVE_CACHESIZE,
+                             requests_redirectable => [qw(GET HEAD DELETE PUT)],
+          );
+        $ua->timing('1,2,4,8,16,32');
+    } else {
+        $ua =
+          LWP::UserAgent->new(
+                             keep_alive            => $KEEP_ALIVE_CACHESIZE,
+                             requests_redirectable => [qw(GET HEAD DELETE PUT)],
+          );
+    }
+
     $ua->timeout($self->timeout);
     $ua->env_proxy;
     $self->ua($ua);
@@ -239,10 +252,9 @@ sub _make_request {
     my ($self, $method, $path, $headers, $data, $metadata) = @_;
     croak 'must specify method' unless $method;
     croak 'must specify path'   unless defined $path;
-    $headers  ||= {};
-    $data     ||= '';
+    $headers ||= {};
+    $data = '' if not defined $data;
     $metadata ||= {};
-
     my $http_headers = $self->_merge_meta($headers, $metadata);
 
     $self->_add_auth_header($http_headers, $method, $path)
@@ -360,6 +372,14 @@ sub _xpc_of_content {
 # returns 1 if errors were found
 sub _remember_errors {
     my ($self, $src) = @_;
+
+    unless (ref $src || $src =~ m/^[[:space:]]*</) {    # if not xml
+        (my $code = $src) =~ s/^[[:space:]]*\([0-9]*\).*$/$1/;
+        $self->err($code);
+        $self->errstr($src);
+        return 1;
+    }
+
     my $r = ref $src ? $src : $self->_xpc_of_content($src);
 
     if ($r->{Error}) {
@@ -505,7 +525,8 @@ managing Amazon S3 buckets and keys.
   
   my $s3 = Amazon::S3->new(
       {   aws_access_key_id     => $aws_access_key_id,
-          aws_secret_access_key => $aws_secret_access_key
+          aws_secret_access_key => $aws_secret_access_key,
+          retry                 => 1
       }
   );
   
@@ -605,23 +626,45 @@ only have come from you.
 B<DO NOT INCLUDE THIS IN SCRIPTS OR APPLICATIONS YOU
 DISTRIBUTE. YOU'LL BE SORRY.>
 
-=item secure 
+=item secure
 
-Set this to C<1> if you want to use SSL-encrypted connections when talking
-to S3. Defaults to C<0>.
+Set this to C<1> if you want to use SSL-encrypted
+connections when talking to S3. Defaults to C<0>.
 
 =item timeout
 
-Defines the time, in seconds, your script should wait or a response before 
-bailing. Defaults is 30 seconds.
+Defines the time, in seconds, your script should wait or a
+response before bailing. Defaults is 30 seconds.
+
+=item retry
+
+Enables or disables the library to retry upon errors. This
+uses exponential backoff with retries after 1, 2, 4, 8, 16,
+32 seconds, as recommended by Amazon. Defaults to off, no
+retries.
 
 =back
 
 =head2 buckets
 
-Returns C<undef> on error, else HASHREF of results
+Returns C<undef> on error, else HASHREF of results:
 
-WHAT IS THE HASH REF????
+=over
+
+=item owner_id
+
+The owner's ID of the buckets owner.
+
+=item owner_display_name
+
+The name of the owner account. 
+
+=item buckets
+
+Any ARRAYREF of L<Amazon::SimpleDB::Bucket> objects for the 
+account.
+
+=back
 
 =head2 add_bucket 
 

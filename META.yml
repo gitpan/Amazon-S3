@@ -1,7 +1,7 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         Amazon-S3
-version:      0.41.2
+version:      0.44
 version_from: lib/Amazon/S3.pm
 installdirs:  site
 requires:
@@ -9,7 +9,8 @@ requires:
     Digest::HMAC_SHA1:             0
     Digest::MD5::File:             0
     HTTP::Date:                    0
-    LWP::UserAgent:                0
+    IO::File:                      0
+    LWP::UserAgent::Determined:    0
     MIME::Base64:                  0
     Test::More:                    0.01
     URI::Escape:                   0

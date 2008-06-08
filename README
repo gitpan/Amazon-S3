@@ -12,7 +12,6 @@ To install this module type the following:
 
 TESTING
     
-
 Testing S3 is a tricky thing. Amazon wants to charge you a
 bit of money each time you use their service. And yes,
 testing counts as using. Because of this, the application's
@@ -23,13 +22,9 @@ AMAZON_S3_EXPENSIVE_TESTS
         
     Doesn't matter what you set it to. Just has to be set
 
-    
-
 AWS_ACCESS_KEY_ID
         
     Your AWS access key
-
-    
 
 AWS_ACCESS_KEY_SECRET
     Your AWS sekkr1t passkey. Be forewarned that setting this
