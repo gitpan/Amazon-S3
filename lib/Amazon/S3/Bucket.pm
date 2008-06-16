@@ -105,6 +105,7 @@ sub get_key {
 
 sub get_key_filename {
     my ($self, $key, $method, $filename) = @_;
+    $filename = $key unless defined $filename;
     return $self->get_key($key, $method, \$filename);
 }
 

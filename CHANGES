@@ -1,5 +1,9 @@
 Revision history for Perl module Amazon::S3:
 
+0.441   Jun 16 2008
+    - Added handling to get_key_filename where the key is used as the file 
+      name if one is not provided.
+
 0.44    Jun 08 2008
     - Applied patch for fixing non-xml error parsing (Harold Sinclair)
     - Ported changes from Net::Amazon::S3 0.42-0.44. These include:
